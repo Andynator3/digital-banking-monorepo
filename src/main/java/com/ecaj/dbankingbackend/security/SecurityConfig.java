@@ -11,7 +11,6 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -24,6 +23,9 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.crypto.spec.SecretKeySpec;
 
@@ -40,11 +42,10 @@ public class SecurityConfig {
     public InMemoryUserDetailsManager inMemoryUserDetailsManager(){
         PasswordEncoder passwordEncoder = passwordEncoder();
         return new InMemoryUserDetailsManager(
-                User.withUsername("dada1").password(passwordEncoder.encode("12340")).authorities("USER").build(),
-                User.withUsername("wawa1").password(passwordEncoder.encode("12340")).authorities("USER", "ADMIN").build()
+                User.withUsername("user1").password(passwordEncoder.encode("12340")).authorities("USER").build(),
+                User.withUsername("admin").password(passwordEncoder.encode("12340")).authorities("USER", "ADMIN").build()
         );
     }
-
     // Méthode pour encoder le mot de passe
     @Bean
     public PasswordEncoder passwordEncoder(){
@@ -55,13 +56,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
-                .csrf(csrf->csrf.disable())
                 .sessionManagement(sm->sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .csrf(csrf->csrf.disable())
+                .cors(Customizer.withDefaults())
                 //.httpBasic(Customizer.withDefaults())
                // .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt) ou
-                .authorizeHttpRequests(aHR->aHR.requestMatchers("/auth/login/**").permitAll())
-                .authorizeHttpRequests(aHR-> aHR.anyRequest().authenticated())
-                .oauth2ResourceServer(oRS->oRS.jwt(Customizer.withDefaults()))
+                .authorizeHttpRequests(ahr->ahr.requestMatchers("/auth/login/**").permitAll())
+                .authorizeHttpRequests(ahr-> ahr.anyRequest().authenticated())
+                .oauth2ResourceServer(ors->ors.jwt(Customizer.withDefaults()))
                 .build();
     }
 
@@ -85,6 +87,18 @@ public class SecurityConfig {
         daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
         daoAuthenticationProvider.setUserDetailsService(userDetailsService);
         return new ProviderManager(daoAuthenticationProvider);
+    }
+
+    @Bean
+    CorsConfigurationSource corsConfigurationSource(){
+        CorsConfiguration corsConfiguration = new CorsConfiguration();
+        corsConfiguration.addAllowedOrigin("*");
+        corsConfiguration.addAllowedMethod("*");
+        corsConfiguration.addAllowedHeader("*");
+       // corsConfiguration.setExposedHeaders(List.of("x-auth-token"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", corsConfiguration);
+        return source;
     }
 
 }
