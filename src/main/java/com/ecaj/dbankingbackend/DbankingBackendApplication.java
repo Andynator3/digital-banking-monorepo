@@ -1,25 +1,25 @@
 package com.ecaj.dbankingbackend;
 
-import com.ecaj.dbankingbackend.dtos.BankAccountDTO;
-import com.ecaj.dbankingbackend.dtos.CurrentBankAccountDTO;
-import com.ecaj.dbankingbackend.dtos.CustomerDTO;
-import com.ecaj.dbankingbackend.dtos.SavingBankAccountDTO;
-import com.ecaj.dbankingbackend.entities.AccountOperation;
-import com.ecaj.dbankingbackend.entities.CurrentAccount;
-import com.ecaj.dbankingbackend.entities.Customer;
-import com.ecaj.dbankingbackend.entities.SavingAccount;
-import com.ecaj.dbankingbackend.enums.AccountStatus;
-import com.ecaj.dbankingbackend.enums.OperationType;
-import com.ecaj.dbankingbackend.exceptions.CustomerNotFoundException;
-import com.ecaj.dbankingbackend.repositories.AccountOperationRepository;
-import com.ecaj.dbankingbackend.repositories.BankAccountRepository;
-import com.ecaj.dbankingbackend.repositories.CustomerRepository;
-import com.ecaj.dbankingbackend.services.BankAccountService;
-import com.ecaj.dbankingbackend.services.CustomerService;
+import com.ecaj.dbankingbackend.account.dtos.BankAccountDTO;
+import com.ecaj.dbankingbackend.account.dtos.CurrentBankAccountDTO;
+import com.ecaj.dbankingbackend.customer.dtos.CustomerDTO;
+import com.ecaj.dbankingbackend.account.dtos.SavingBankAccountDTO;
+import com.ecaj.dbankingbackend.operation.entities.AccountOperation;
+import com.ecaj.dbankingbackend.account.entities.CurrentAccount;
+import com.ecaj.dbankingbackend.customer.entities.Customer;
+import com.ecaj.dbankingbackend.account.entities.SavingAccount;
+import com.ecaj.dbankingbackend.account.enums.AccountStatus;
+import com.ecaj.dbankingbackend.operation.enums.OperationType;
+import com.ecaj.dbankingbackend.customer.exceptions.CustomerNotFoundException;
+import com.ecaj.dbankingbackend.operation.repositories.AccountOperationRepository;
+import com.ecaj.dbankingbackend.account.repositories.BankAccountRepository;
+import com.ecaj.dbankingbackend.customer.repositories.CustomerRepository;
+import com.ecaj.dbankingbackend.account.services.BankAccountService;
+import com.ecaj.dbankingbackend.customer.services.CustomerService;
+import com.ecaj.dbankingbackend.operation.services.OperationService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
 
 import java.util.Date;
 import java.util.List;
@@ -33,7 +33,7 @@ public class DbankingBackendApplication {
         SpringApplication.run(DbankingBackendApplication.class, args);
     }
    // @Bean
-    CommandLineRunner commandLineRunner(CustomerService customerService, BankAccountService bankAccountService){
+    CommandLineRunner commandLineRunner(CustomerService customerService, BankAccountService bankAccountService, OperationService operationService){
         return args -> {
             // Create a customer list
            Stream.of("Pascal","Aline","Pierre").forEach(name->{
@@ -62,8 +62,8 @@ public class DbankingBackendApplication {
                     } else{
                         accountId=((CurrentBankAccountDTO) bankAccount).getId();
                     }
-                    bankAccountService.credit(accountId,10000+Math.random()*120000,"Credit");
-                    bankAccountService.debit(accountId,1000+Math.random()*9000,"Debit");
+                    operationService.credit(accountId,10000+Math.random()*120000,"Credit");
+                    operationService.debit(accountId,1000+Math.random()*9000,"Debit");
                 }
             }
         };
@@ -99,7 +99,7 @@ public class DbankingBackendApplication {
                 bankAccountRepository.save(savingAccount);
 
             });
-            bankAccountRepository.findAll().forEach(acc->{
+           /* bankAccountRepository.findAll().forEach(acc->{
                 for (int i = 0; i <10 ; i++) {
                     AccountOperation accountOperation=new AccountOperation();
                     accountOperation.setOperationDate(new Date());
@@ -108,8 +108,7 @@ public class DbankingBackendApplication {
                     accountOperation.setBankAccount(acc);
                     accountOperationRepository.save(accountOperation);
                 }
-
-            });
+            });*/
         };
 
     }
