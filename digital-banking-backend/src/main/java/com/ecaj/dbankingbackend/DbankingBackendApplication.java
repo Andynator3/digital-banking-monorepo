@@ -17,9 +17,11 @@ import com.ecaj.dbankingbackend.customer.repositories.CustomerRepository;
 import com.ecaj.dbankingbackend.account.services.BankAccountService;
 import com.ecaj.dbankingbackend.customer.services.CustomerService;
 import com.ecaj.dbankingbackend.operation.services.OperationService;
+import com.ecaj.dbankingbackend.security.services.SecurityService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 
 import java.util.Date;
 import java.util.List;
@@ -32,7 +34,34 @@ public class DbankingBackendApplication {
     public static void main(String[] args) {
         SpringApplication.run(DbankingBackendApplication.class, args);
     }
-   // @Bean
+
+    @Bean
+    CommandLineRunner start(SecurityService securityService) {
+        return args -> {
+            // 1. Création des rôles
+            securityService.addNewRole("USER");
+            securityService.addNewRole("ADMIN");
+
+            // 2. Création des utilisateurs
+            // (Le mot de passe sera automatiquement haché par la méthode addNewUser de notre service)
+            securityService.addNewUser("freeman", "12340", "freeman@gmail.com");
+            securityService.addNewUser("scage", "12340", "scage@gmail.com");
+            securityService.addNewUser("admin", "12340", "admin@gmail.com");
+
+            // 3. Attribution des rôles aux utilisateurs
+            securityService.addRoleToUser("freeman", "USER");
+            securityService.addRoleToUser("scage", "USER");
+
+            // L'administrateur reçoit les deux rôles
+            securityService.addRoleToUser("admin", "USER");
+            securityService.addRoleToUser("admin", "ADMIN");
+
+            System.out.println("====== Utilisateurs de test générés avec succès ======");
+        };
+    }
+
+
+    // @Bean
     CommandLineRunner commandLineRunner(CustomerService customerService, BankAccountService bankAccountService, OperationService operationService){
         return args -> {
             // Create a customer list

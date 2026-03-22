@@ -1,6 +1,6 @@
-package com.ecaj.dbankingbackend.security;
+//package com.ecaj.dbankingbackend.security;
 
-import org.springframework.security.authentication.AuthenticationManager;
+/*import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -17,11 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.stream.Collectors;*/
 
-@RestController
-@RequestMapping("/auth")
-public class SecurityController {
+//@RestController
+//@RequestMapping("/auth")
+/*public class SecurityController {
     private final AuthenticationManager authenticationManager;
     private final JwtEncoder jwtEncoder;
 
@@ -58,4 +58,4 @@ public class SecurityController {
         return Map.of("access-token",jwt);
     }
 
-}
+}*/

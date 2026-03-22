@@ -11,6 +11,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -34,60 +35,105 @@ import javax.crypto.spec.SecretKeySpec;
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
-    @Value("${jwt.secret}")
+    // Clé secrète (idéalement à mettre dans application.properties)
+    @Value("${jwt.secret:MaCleSecreteTresLongueEtTresSecuriseePourHS512Algorithm!!!}")
     private String secretKey;
 
-    // Authentification de type InMemory
+    // @Value("${jwt.secret}")
+    // private String secretKey;
+
     @Bean
-    public InMemoryUserDetailsManager inMemoryUserDetailsManager(){
-        PasswordEncoder passwordEncoder = passwordEncoder();
-        return new InMemoryUserDetailsManager(
-                User.withUsername("user1").password(passwordEncoder.encode("12340")).authorities("USER").build(),
-                User.withUsername("admin").password(passwordEncoder.encode("12340")).authorities("USER", "ADMIN").build()
-        );
-    }
-    // Méthode pour encoder le mot de passe
-    @Bean
-    public PasswordEncoder passwordEncoder(){
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // Protection de l'application
+    // Méthode pour encoder le mot de passe
+    /*  @Bean
+    public PasswordEncoder passwordEncoder(){
+        return new BCryptPasswordEncoder();
+    }*/
+
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+    public AuthenticationManager authenticationManager(UserDetailsService userDetailsService) {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setPasswordEncoder(passwordEncoder());
+        authProvider.setUserDetailsService(userDetailsService);
+        return new ProviderManager(authProvider);
+    }
+
+    //@Bean
+    /*  public AuthenticationManager authenticationManager(UserDetailsService userDetailsService){
+        DaoAuthenticationProvider daoAuthenticationProvider=new DaoAuthenticationProvider();
+        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
+        daoAuthenticationProvider.setUserDetailsService(userDetailsService);
+        return new ProviderManager(daoAuthenticationProvider);
+    }*/
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
+                .authorizeHttpRequests(ar -> ar.requestMatchers("/auth/login/**").permitAll())
+                // Exemple de protection : seuls les ADMIN peuvent créer des comptes bancaires
+                .authorizeHttpRequests(ar -> ar.requestMatchers("/accounts/**").hasAuthority("SCOPE_ADMIN"))
+                .authorizeHttpRequests(ar -> ar.anyRequest().authenticated())
+                .oauth2ResourceServer(oa -> oa.jwt(Customizer.withDefaults()))
+                .build();
+    }
+
+    // Protection de l'application
+    //@Bean
+    /* public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .sessionManagement(sm->sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(csrf->csrf.disable())
                 .cors(Customizer.withDefaults())
                 //.httpBasic(Customizer.withDefaults())
-               // .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt) ou
+                // .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt) ou
                 .authorizeHttpRequests(ahr->ahr.requestMatchers("/auth/login/**").permitAll())
                 .authorizeHttpRequests(ahr-> ahr.anyRequest().authenticated())
                 .oauth2ResourceServer(ors->ors.jwt(Customizer.withDefaults()))
                 .build();
     }
+   */
 
-    // Création de JWT encodeur pour générer et signer le Token au moment de l'authentification
     @Bean
-    JwtEncoder jwtEncoder(){
-        //String secretKey = "5waa120514f2mee100291f20di62005m5waa120514f2mee100291f20di62005m";
+    JwtEncoder jwtEncoder() {
         return new NimbusJwtEncoder(new ImmutableSecret<>(secretKey.getBytes()));
     }
-    // Création de JWT Decodeur pour authentifier l'utilisateur via le Token
-    @Bean
-    JwtDecoder jwtDecoder(){
+
+    // Création de JWT encodeur pour générer et signer le Token au moment de l'authentification
+    //@Bean
+    /*  JwtEncoder jwtEncoder(){
         //String secretKey = "5waa120514f2mee100291f20di62005m5waa120514f2mee100291f20di62005m";
+        return new NimbusJwtEncoder(new ImmutableSecret<>(secretKey.getBytes()));
+    }*/
+
+    @Bean
+    JwtDecoder jwtDecoder() {
         SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(), "RSA");
         return NimbusJwtDecoder.withSecretKey(secretKeySpec).macAlgorithm(MacAlgorithm.HS512).build();
     }
 
-    @Bean
-    public AuthenticationManager authenticationManager(UserDetailsService userDetailsService){
-        DaoAuthenticationProvider daoAuthenticationProvider=new DaoAuthenticationProvider();
-        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
-        daoAuthenticationProvider.setUserDetailsService(userDetailsService);
-        return new ProviderManager(daoAuthenticationProvider);
-    }
+    // Création de JWT Decodeur pour authentifier l'utilisateur via le Token
+    //@Bean
+   /* JwtDecoder jwtDecoder(){
+        //String secretKey = "5waa120514f2mee100291f20di62005m5waa120514f2mee100291f20di62005m";
+        SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(), "RSA");
+        return NimbusJwtDecoder.withSecretKey(secretKeySpec).macAlgorithm(MacAlgorithm.HS512).build();
+    }*/
+
+    // Authentification de type InMemory
+    // @Bean
+   /*  public InMemoryUserDetailsManager inMemoryUserDetailsManager(){
+        PasswordEncoder passwordEncoder = passwordEncoder();
+        return new InMemoryUserDetailsManager(
+                User.withUsername("user1").password(passwordEncoder.encode("12340")).authorities("USER").build(),
+                User.withUsername("admin").password(passwordEncoder.encode("12340")).authorities("USER", "ADMIN").build()
+        );
+    }*/
 
     @Bean
     CorsConfigurationSource corsConfigurationSource(){

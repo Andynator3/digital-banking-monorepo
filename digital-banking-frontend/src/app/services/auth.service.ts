@@ -21,7 +21,7 @@ export class AuthService {
     }
     let params = new HttpParams()
       .set("username", username) .set("password", password);
-    return this.http.post("http://localhost:8086/auth/login", params, options)
+    return this.http.post("http://localhost:8090/auth/login", params, options)
   }
 
   loadProfile(data: any) {
