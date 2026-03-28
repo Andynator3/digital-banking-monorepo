@@ -4,12 +4,10 @@ import com.ecaj.dbankingbackend.account.dtos.BankAccountDTO;
 import com.ecaj.dbankingbackend.account.dtos.CurrentBankAccountDTO;
 import com.ecaj.dbankingbackend.customer.dtos.CustomerDTO;
 import com.ecaj.dbankingbackend.account.dtos.SavingBankAccountDTO;
-import com.ecaj.dbankingbackend.operation.entities.AccountOperation;
 import com.ecaj.dbankingbackend.account.entities.CurrentAccount;
 import com.ecaj.dbankingbackend.customer.entities.Customer;
 import com.ecaj.dbankingbackend.account.entities.SavingAccount;
 import com.ecaj.dbankingbackend.account.enums.AccountStatus;
-import com.ecaj.dbankingbackend.operation.enums.OperationType;
 import com.ecaj.dbankingbackend.customer.exceptions.CustomerNotFoundException;
 import com.ecaj.dbankingbackend.operation.repositories.AccountOperationRepository;
 import com.ecaj.dbankingbackend.account.repositories.BankAccountRepository;
@@ -17,11 +15,13 @@ import com.ecaj.dbankingbackend.customer.repositories.CustomerRepository;
 import com.ecaj.dbankingbackend.account.services.BankAccountService;
 import com.ecaj.dbankingbackend.customer.services.CustomerService;
 import com.ecaj.dbankingbackend.operation.services.OperationService;
-import com.ecaj.dbankingbackend.security.services.SecurityService;
+import com.ecaj.dbankingbackend.security.services.AuthSecurityService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Date;
 import java.util.List;
@@ -35,26 +35,26 @@ public class DbankingBackendApplication {
         SpringApplication.run(DbankingBackendApplication.class, args);
     }
 
-    @Bean
-    CommandLineRunner start(SecurityService securityService) {
+   // @Bean
+    CommandLineRunner commandLineRunnerUserDetails(AuthSecurityService authSecurityService) {
         return args -> {
             // 1. Création des rôles
-            securityService.addNewRole("USER");
-            securityService.addNewRole("ADMIN");
+            authSecurityService.addNewRole("USER");
+            authSecurityService.addNewRole("ADMIN");
 
             // 2. Création des utilisateurs
             // (Le mot de passe sera automatiquement haché par la méthode addNewUser de notre service)
-            securityService.addNewUser("freeman", "12340", "freeman@gmail.com");
-            securityService.addNewUser("scage", "12340", "scage@gmail.com");
-            securityService.addNewUser("admin", "12340", "admin@gmail.com");
+            authSecurityService.addNewUser("freeman", "12340", "freeman@gmail.com","12340");
+            authSecurityService.addNewUser("scage", "12340", "scage@gmail.com", "12340");
+            authSecurityService.addNewUser("admin", "12340", "admin@gmail.com", "12340");
 
             // 3. Attribution des rôles aux utilisateurs
-            securityService.addRoleToUser("freeman", "USER");
-            securityService.addRoleToUser("scage", "USER");
+            authSecurityService.addRoleToUser("freeman", "USER");
+            authSecurityService.addRoleToUser("scage", "USER");
 
             // L'administrateur reçoit les deux rôles
-            securityService.addRoleToUser("admin", "USER");
-            securityService.addRoleToUser("admin", "ADMIN");
+            authSecurityService.addRoleToUser("admin", "USER");
+            authSecurityService.addRoleToUser("admin", "ADMIN");
 
             System.out.println("====== Utilisateurs de test générés avec succès ======");
         };

@@ -23,8 +23,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class CustomerServiceImpl implements CustomerService {
     private CustomerRepository customerRepository;
-    private BankAccountRepository bankAccountRepository;
-    private AccountOperationRepository accountOperationRepository;
+
     private CustomerMapperImpl dtoCustomerMapper;
 
     @Override
