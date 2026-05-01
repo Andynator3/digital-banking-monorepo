@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import {FormBuilder, FormGroup} from "@angular/forms";
-import {AccountsService} from "../services/accounts.service";
+import {AccountsService} from "../../../core/services/accounts.service";
 import {catchError, Observable, throwError} from "rxjs";
-import {AccountDetails} from "../model/account.model";
-import {AuthService} from "../services/auth.service";
+import {AccountDetails} from "../../../models/account.model";
+import {AuthService} from "../../../core/services/auth.service";
 
 @Component({
   selector: 'app-accounts',
