@@ -21,7 +21,7 @@ export class AuthService {
     }
     let params = new HttpParams()
       .set("username", username) .set("password", password);
-    return this.http.post("http://localhost:8086/auth/login", params, options)
+    return this.http.post("http://localhost:8090/auth/login", params, options)
   }
 
   loadProfile(data: any) {
@@ -45,8 +45,16 @@ export class AuthService {
   loadJwtTokenFromLocalStorage() {
     let jwtToken = window.localStorage.getItem("jwt-token");
     if (jwtToken) {
+      // 1. On recharge le profil depuis le token
       this.loadProfile({"access-token" : jwtToken});
-      this.router.navigateByUrl("/admin/customers");
+
+      // 2. On applique la même logique de redirection conditionnelle ici
+      if (this.roles && this.roles.includes('ADMIN')) {
+        this.router.navigateByUrl("/admin/customers");
+      } else {
+        this.router.navigateByUrl("/member/accounts");
+      }
     }
   }
+
 }

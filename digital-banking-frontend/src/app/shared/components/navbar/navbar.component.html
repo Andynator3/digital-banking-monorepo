@@ -1,0 +1,64 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+  <div class="container-fluid">
+
+    <!-- Le logo/titre -->
+    <a class="navbar-brand fw-bold" routerLink="/">
+      <i class="bi bi-bank me-2"></i>Digital Banking
+    </a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Utilisation de VOTRE variable booléenne isAuthenticated (sans le | async) -->
+    <div class="collapse navbar-collapse" id="navbarNav" *ngIf="authService.isAuthenticated">
+
+      <!-- LIENS DE GAUCHE -->
+      <ul class="navbar-nav me-auto">
+
+        <!-- LIENS VISIBLES UNIQUEMENT PAR L'ADMIN -->
+        <!-- On vérifie si la chaîne roles de votre token contient 'ADMIN' -->
+        <ng-container *ngIf="authService.roles && authService.roles.includes('ADMIN')">
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/admin/customers" routerLinkActive="active">
+              <i class="bi bi-people"></i> Clients
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/admin/new-customer" routerLinkActive="active">
+              <i class="bi bi-person-plus"></i> Nouveau Client
+            </a>
+          </li>
+        </ng-container>
+
+        <!-- LIENS VISIBLES PAR LE CLIENT (USER) ET L'ADMIN -->
+        <ng-container *ngIf="authService.roles && (authService.roles.includes('USER') || authService.roles.includes('ADMIN'))">
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/member/accounts" routerLinkActive="active">
+              <i class="bi bi-wallet2"></i> Opérations & Comptes
+            </a>
+          </li>
+        </ng-container>
+
+      </ul>
+
+      <!-- LIENS DE DROITE (PROFIL & DÉCONNEXION) -->
+      <ul class="navbar-nav">
+        <!-- Utilisation directe de VOTRE variable username -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle"></i> {{ authService.username }}
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+              <button class="dropdown-item text-danger" (click)="handleLogout()">
+                <i class="bi bi-box-arrow-right"></i> Se déconnecter
+              </button>
+            </li>
+          </ul>
+        </li>
+      </ul>
+
+    </div>
+  </div>
+</nav>
