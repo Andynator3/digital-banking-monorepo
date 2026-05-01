@@ -1,27 +1,31 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import {CustomersComponent} from "./customers/customers.component";
-import {AccountsComponent} from "./accounts/accounts.component";
-import {NewCustomerComponent} from "./new-customer/new-customer.component";
-import {CustomerAccountsComponent} from "./customer-accounts/customer-accounts.component";
-import {LoginComponent} from "./login/login.component";
-import {AdminTemplateComponent} from "./admin-template/admin-template.component";
-import {AuthenticationGuard} from "./guards/authentication.guard";
-import {AuthorizationGuard} from "./guards/authorization.guard";
-import {NotAuthorizedComponent} from "./not-authorized/not-authorized.component";
+import { AuthenticationGuard } from './core/guards/authentication.guard';
+import { AuthorizationGuard} from './core/guards/authorization.guard';
 
 const routes: Routes = [
-  {path : "login", component : LoginComponent},
-  {path : "" , redirectTo : "/login", pathMatch : "full"},
-  {path : "admin", component : AdminTemplateComponent, canActivate : [AuthenticationGuard],
-    children : [
-      { path :"customers", component : CustomersComponent},
-      { path :"accounts", component : AccountsComponent},
-      { path :"new-customer", component : NewCustomerComponent, canActivate : [AuthorizationGuard], data : {role: "ADMIN"}},
-      { path :"customer-accounts/:id", component : CustomerAccountsComponent},
-      { path :"not-authorized", component : NotAuthorizedComponent},
-    ]},
-
+  {
+    // Charge le module Public (Login, Not-authorized)
+    path: 'public',
+    loadChildren: () => import('./features/public/public.module').then(m => m.PublicModule)
+  },
+  {
+    // Charge le module Admin (protégé par le Guard)
+    path: 'admin',
+    canActivate: [AuthenticationGuard, AuthorizationGuard],
+    data: { roles: ['ADMIN'] },
+    loadChildren: () => import('./features/admin/admin.module').then(m => m.AdminModule)
+  },
+  {
+    // Charge le module Member (protégé par le Guard)
+    path: 'member',
+    canActivate: [AuthenticationGuard, AuthorizationGuard],
+    data: { roles: ['USER', 'ADMIN'] },
+    loadChildren: () => import('./features/member/member.module').then(m => m.MemberModule)
+  },
+  // Redirections par défaut
+  { path: '', redirectTo: 'public/login', pathMatch: 'full' },
+  { path: '**', redirectTo: 'public/login' }
 ];
 
 @NgModule({
