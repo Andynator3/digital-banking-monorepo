@@ -1,52 +1,58 @@
 import { Injectable } from '@angular/core';
-import {HttpClient, HttpHeaders, HttpParams} from "@angular/common/http";
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { Router } from '@angular/router';
+//import jwt_decode from 'jwt-decode';
 import {jwtDecode} from "jwt-decode";
-import {Router} from "@angular/router";
+// Import de nos nouveaux modèles
+import { LoginRequest } from '../../models/login-request.model';
+import { AuthResponse } from '../../models/auth-response.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  isAuthenticated : boolean = false;
-  roles : any;
-  username : any;
-  accessToken! : any;
+  private backendHost = "http://localhost:8090"; // Vérifiez bien votre port (8080 ou 8090)
 
-  constructor(private http: HttpClient, private  router : Router) { }
+  public username: string | undefined;
+  public roles: string[] = [];
+  public isAuthenticated: boolean = false;
+  public accessToken: string | undefined;
 
-  public login(username : string, password : string){
-    let options = {
-      headers : new HttpHeaders()
-        .set("Content-Type", "application/x-www-form-urlencoded")
-    }
-    let params = new HttpParams()
-      .set("username", username) .set("password", password);
-    return this.http.post("http://localhost:8090/auth/login", params, options)
+  constructor(private http: HttpClient, private router: Router) { }
+
+  // 1. La méthode d'appel API ultra propre
+  public login(request: LoginRequest): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.backendHost}/auth/login`, request);
   }
 
-  loadProfile(data: any) {
+  // 2. La méthode pour décoder et stocker
+  public loadProfile(data: AuthResponse) {
     this.isAuthenticated = true;
-    this.accessToken = data['access-token'];
-    let decodeJwt : any = jwtDecode(this.accessToken);
-    this.username = decodeJwt.sub;
-    this.roles = decodeJwt.scope;
+    this.accessToken = data.accessToken;
     window.localStorage.setItem("jwt-token", this.accessToken);
+
+    let decodedJwt: any = jwtDecode(this.accessToken);
+    this.username = decodedJwt.sub;
+    // Si le scope est une chaîne "SCOPE_ADMIN SCOPE_USER", on la découpe en tableau
+    if (decodedJwt.scope) {
+      this.roles = decodedJwt.scope.split(' ').map((role: string) => {
+        return role.replace('SCOPE_', '').replace('ROLE_', '');
+      });
+
+      console.log("Rôles nettoyés par Angular :", this.roles);
+    } else {
+      this.roles = [];
+    }
   }
 
-  logout() {
-    this.isAuthenticated = false;
-    this.username = undefined;
-    this.roles = undefined;
-    this.accessToken = undefined;
-    window.localStorage.removeItem("access-token");
-    this.router.navigateByUrl("/login");
-  }
+
 
   loadJwtTokenFromLocalStorage() {
     let jwtToken = window.localStorage.getItem("jwt-token");
     if (jwtToken) {
       // 1. On recharge le profil depuis le token
-      this.loadProfile({"access-token" : jwtToken});
+      this.loadProfile({accessToken : jwtToken});
 
       // 2. On applique la même logique de redirection conditionnelle ici
       if (this.roles && this.roles.includes('ADMIN')) {
@@ -57,4 +63,15 @@ export class AuthService {
     }
   }
 
+  logout() {
+    // 1. On vide le localStorage
+    window.localStorage.removeItem("access-token");
+    // 2. On réinitialise les variables d'état du service
+    this.isAuthenticated = false;
+    this.username = undefined;
+    this.roles = [];
+    this.accessToken = undefined;
+
+    this.router.navigateByUrl("/public/login");
+  }
 }
