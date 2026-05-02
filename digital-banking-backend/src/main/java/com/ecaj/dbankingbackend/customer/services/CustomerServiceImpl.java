@@ -23,10 +23,17 @@ import java.util.stream.Collectors;
 @Slf4j
 public class CustomerServiceImpl implements CustomerService {
     private CustomerRepository customerRepository;
-    private BankAccountRepository bankAccountRepository;
-    private AccountOperationRepository accountOperationRepository;
+
     private CustomerMapperImpl dtoCustomerMapper;
 
+    @Override
+    public List<CustomerDTO> searchCustomers(String keyword) {
+        List<Customer> customers=customerRepository.searchCustomer(keyword);
+        List<CustomerDTO> customerDTOS = customers.stream()
+                .map(cust -> dtoCustomerMapper.fromCustomer(cust))
+                .collect(Collectors.toList());
+        return customerDTOS;
+    }
     @Override
     public CustomerDTO saveCustomer(CustomerDTO customerDTO) {
         log.info("Saving new Customer");
@@ -69,12 +76,5 @@ public class CustomerServiceImpl implements CustomerService {
         customerRepository.deleteById(customerId);
     }
     // Search customers by keyword
-    @Override
-    public List<CustomerDTO> searchCustomers(String keyword) {
-        List<Customer> customers=customerRepository.searchCustomer(keyword);
-        List<CustomerDTO> customerDTOS = customers.stream()
-                .map(cust -> dtoCustomerMapper.fromCustomer(cust))
-                .collect(Collectors.toList());
-        return customerDTOS;
-    }
+
 }

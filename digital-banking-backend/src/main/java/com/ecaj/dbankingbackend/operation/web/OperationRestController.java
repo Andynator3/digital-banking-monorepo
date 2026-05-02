@@ -6,6 +6,7 @@ import com.ecaj.dbankingbackend.operation.exceptions.BalanceNotSufficientExcepti
 import com.ecaj.dbankingbackend.operation.services.OperationService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,11 +19,13 @@ public class OperationRestController {
     private OperationService operationService;
 
     @GetMapping("/accounts/{accountId}/operations")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ROLE_ADMIN', 'SCOPE_ROLE_USER')")
     public List<AccountOperationDTO> getHistory(@PathVariable String accountId){
         return operationService.accountHistory(accountId);
     }
 
     @GetMapping("/accounts/{accountId}/pageOperations")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ROLE_ADMIN', 'SCOPE_ROLE_USER')")
     public AccountHistoryDTO getAccountHistory(
             @PathVariable String accountId,
             @RequestParam(name="page",defaultValue = "0") int page,
@@ -30,16 +33,19 @@ public class OperationRestController {
         return operationService.getAccountHistory(accountId,page,size);
     }
     @PostMapping("/accounts/debit")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ROLE_ADMIN', 'SCOPE_ROLE_USER')")
     public DebitDTO debit(@RequestBody DebitDTO debitDTO) throws BankAccountNotFoundException, BalanceNotSufficientException {
         this.operationService.debit(debitDTO.getAccountId(),debitDTO.getAmount(),debitDTO.getDescription());
         return debitDTO;
     }
     @PostMapping("/accounts/credit")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ROLE_ADMIN', 'SCOPE_ROLE_USER')")
     public CreditDTO credit(@RequestBody CreditDTO creditDTO) throws BankAccountNotFoundException {
         this.operationService.credit(creditDTO.getAccountId(),creditDTO.getAmount(),creditDTO.getDescription());
         return creditDTO;
     }
     @PostMapping("/accounts/transfer")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ROLE_ADMIN', 'SCOPE_ROLE_USER')")
     public void transfer(@RequestBody TransferRequestDTO transferRequestDTO) throws BankAccountNotFoundException, BalanceNotSufficientException {
         this.operationService.transfer(
                 transferRequestDTO.getAccountSource(),
