@@ -2,7 +2,6 @@ package com.ecaj.dbankingbackend.security.config;
 
 import com.ecaj.dbankingbackend.security.services.impl.UserDetailsServiceImpl;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -37,15 +36,8 @@ import javax.crypto.spec.SecretKeySpec;
 public class SecurityConfig {
     private final UserDetailsServiceImpl userDetailsServiceImpl;
 
-
-    // Clé secrète (idéalement à mettre dans application.properties)
-    /*@Value("${jwt.secret:MaCleSecreteTresLongueEtTresSecuriseePourHS512Algorithm!!!}")
-    private String secretKey;*/
-
      @Value("${jwt.secret}")
      private String secretKey;
-
-
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -53,57 +45,31 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
-                .authorizeHttpRequests(ar -> ar.requestMatchers("/auth/login/**").permitAll())
-                // Exemple de protection : seuls les ADMIN peuvent créer des comptes bancaires
-                .authorizeHttpRequests(ar -> ar.requestMatchers("/accounts/**").hasAuthority("SCOPE_ADMIN"))
-                .authorizeHttpRequests(ar -> ar.anyRequest().authenticated())
+                .authorizeHttpRequests(ar -> ar
+                        .requestMatchers("/auth/login/**").permitAll()
+                        // 1. Autoriser l'accès aux clients pour les ADMIN ou ROLE_ADMIN
+                        .requestMatchers("/customers/**").hasAuthority("SCOPE_ROLE_ADMIN")
+                        // 2. Autoriser l'accès aux comptes pour les USER ou ADMIN
+                        .requestMatchers("/accounts/**").hasAnyAuthority("SCOPE_ROLE_ADMIN", "SCOPE_ROLE_USER")
+                        // 3. Toutes les autres requêtes nécessitent d'être connecté
+                        .anyRequest().authenticated()
+                )
                 .oauth2ResourceServer(oa -> oa.jwt(Customizer.withDefaults()))
                 .userDetailsService(userDetailsServiceImpl)
                 .build();
     }
-
-    // Protection de l'application
-    //@Bean
-    /* public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        return httpSecurity
-                .sessionManagement(sm->sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .csrf(csrf->csrf.disable())
-                .cors(Customizer.withDefaults())
-                //.httpBasic(Customizer.withDefaults())
-                // .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt) ou
-                .authorizeHttpRequests(ahr->ahr.requestMatchers("/auth/login/**").permitAll())
-                .authorizeHttpRequests(ahr-> ahr.anyRequest().authenticated())
-                .oauth2ResourceServer(ors->ors.jwt(Customizer.withDefaults()))
-                .build();
-    }
-   */
-
 
     @Bean
     JwtEncoder jwtEncoder() {
         return new NimbusJwtEncoder(new ImmutableSecret<>(secretKey.getBytes()));
     }
 
-    // Création de JWT encodeur pour générer et signer le Token au moment de l'authentification
-    //@Bean
-    /*  JwtEncoder jwtEncoder(){
-        //String secretKey = "5waa120514f2mee100291f20di62005m5waa120514f2mee100291f20di62005m";
-        return new NimbusJwtEncoder(new ImmutableSecret<>(secretKey.getBytes()));
-    }*/
-
     @Bean
     JwtDecoder jwtDecoder() {
-        SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(), "RSA");
+        // On utilise "HmacSHA512" ou "HMAC" et non "RSA"
+        SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(), "HmacSHA512");
         return NimbusJwtDecoder.withSecretKey(secretKeySpec).macAlgorithm(MacAlgorithm.HS512).build();
     }
-
-    // Création de JWT Decodeur pour authentifier l'utilisateur via le Token
-    //@Bean
-   /* JwtDecoder jwtDecoder(){
-        //String secretKey = "5waa120514f2mee100291f20di62005m5waa120514f2mee100291f20di62005m";
-        SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(), "RSA");
-        return NimbusJwtDecoder.withSecretKey(secretKeySpec).macAlgorithm(MacAlgorithm.HS512).build();
-    }*/
 
     @Bean
     public AuthenticationProvider authenticationProvider(UserDetailsServiceImpl userDetailsServiceImpl, PasswordEncoder passwordEncoder) {
@@ -116,23 +82,6 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationProvider authProvider) {
         return new ProviderManager(authProvider);
     }
-
-    //@Bean
-    /*  public AuthenticationManager authenticationManager(UserDetailsService userDetailsService){
-        DaoAuthenticationProvider daoAuthenticationProvider=new DaoAuthenticationProvider();
-        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
-        daoAuthenticationProvider.setUserDetailsService(userDetailsService);
-        return new ProviderManager(daoAuthenticationProvider);
-    }*/
-    // Authentification de type InMemory
-    // @Bean
-   /*  public InMemoryUserDetailsManager inMemoryUserDetailsManager(){
-        PasswordEncoder passwordEncoder = passwordEncoder();
-        return new InMemoryUserDetailsManager(
-                User.withUsername("user1").password(passwordEncoder.encode("12340")).authorities("USER").build(),
-                User.withUsername("admin").password(passwordEncoder.encode("12340")).authorities("USER", "ADMIN").build()
-        );
-    }*/
 
     @Bean
     CorsConfigurationSource corsConfigurationSource(){

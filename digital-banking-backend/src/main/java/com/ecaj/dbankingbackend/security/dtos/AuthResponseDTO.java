@@ -4,14 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-
 @Getter
 @Setter
 @AllArgsConstructor
 public class AuthResponseDTO {
     private String accessToken;
-    private String username;
-    private List<String> roles;
 
 }

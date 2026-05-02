@@ -28,22 +28,6 @@ public class AuthSecurityServiceImpl implements AuthSecurityService {
         this.passwordEncoder = passwordEncoder;
     }
 
-
- /*   @Override
-    public AppUser addNewUser(AppUser appUser) {
-        log.info("Création d'un nouvel utilisateur");
-        // Cripter le password de l'utilisateur
-        String hashedPassword = passwordEncoder.encode(appUser.getPassword());
-        appUser.setPassword(hashedPassword);
-        return appUserRepository.save(appUser);
-    }*/
-
-    /*@Override
-    public AppRole addNewRole(AppRole appRole) {
-        log.info("Création d'un nouveau rôle");
-        return appRoleRepository.save(appRole);
-    }*/
-
     @Override
     public AppUser addNewUser(String username, String password, String email, String confirmPassword) {
         log.info("Création d'un nouvel utilisateur");
@@ -99,6 +83,21 @@ public class AuthSecurityServiceImpl implements AuthSecurityService {
     public List<AppUser> appUsersList() {
         return appUserRepository.findAll();
     }
+
+    /*@Override
+    public AppUser addNewUser(AppUser appUser) {
+        log.info("Création d'un nouvel utilisateur");
+        // Cripter le password de l'utilisateur
+        String hashedPassword = passwordEncoder.encode(appUser.getPassword());
+        appUser.setPassword(hashedPassword);
+        return appUserRepository.save(appUser);
+    }*/
+
+    /*@Override
+    public AppRole addNewRole(AppRole appRole) {
+        log.info("Création d'un nouveau rôle");
+        return appRoleRepository.save(appRole);
+    }*/
 
 }
 
