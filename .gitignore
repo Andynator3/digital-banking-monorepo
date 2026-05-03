@@ -7,15 +7,20 @@
 *.iws
 *.ipr
 *.ipr
-
+*.swp
+*.swo
 # ==========================================
 # SYSTÈME D'EXPLOITATION
 # ==========================================
+# Dossiers OS
 .DS_Store
 Thumbs.db
-
+desktop.ini
 # ==========================================
 # ENVIRONNEMENT & SECRETS GLOBAUX
 # ==========================================
+# Secrets (Le plus important !)
 .env
+# Docker logs
+*.log
 docker-compose.override.yml
