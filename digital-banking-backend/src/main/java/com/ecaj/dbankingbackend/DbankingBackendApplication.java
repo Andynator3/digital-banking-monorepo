@@ -20,8 +20,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.core.annotation.Order;
+
 
 import java.util.Date;
 import java.util.List;
@@ -35,7 +35,8 @@ public class DbankingBackendApplication {
         SpringApplication.run(DbankingBackendApplication.class, args);
     }
 
-   // @Bean
+    @Bean
+    @Order(1)
     CommandLineRunner commandLineRunnerUserDetails(AuthSecurityService authSecurityService) {
         return args -> {
             // 1. Création des rôles
@@ -44,13 +45,13 @@ public class DbankingBackendApplication {
 
             // 2. Création des utilisateurs
             // (Le mot de passe sera automatiquement haché par la méthode addNewUser de notre service)
-            authSecurityService.addNewUser("freeman", "12340", "freeman@gmail.com","12340");
-            authSecurityService.addNewUser("scage", "12340", "scage@gmail.com", "12340");
+            authSecurityService.addNewUser("user1", "12340", "user1@gmail.com","12340");
+            authSecurityService.addNewUser("user2", "12340", "user2@gmail.com", "12340");
             authSecurityService.addNewUser("admin", "12340", "admin@gmail.com", "12340");
 
             // 3. Attribution des rôles aux utilisateurs
-            authSecurityService.addRoleToUser("freeman", "USER");
-            authSecurityService.addRoleToUser("scage", "USER");
+            authSecurityService.addRoleToUser("user1", "USER");
+            authSecurityService.addRoleToUser("user2", "USER");
 
             // L'administrateur reçoit les deux rôles
             authSecurityService.addRoleToUser("admin", "USER");
@@ -61,11 +62,12 @@ public class DbankingBackendApplication {
     }
 
 
-    // @Bean
+     @Bean
+     @Order(2)
     CommandLineRunner commandLineRunner(CustomerService customerService, BankAccountService bankAccountService, OperationService operationService){
         return args -> {
             // Create a customer list
-           Stream.of("Pascal","Aline","Pierre").forEach(name->{
+           Stream.of("Mathieu","Aline","Pierre").forEach(name->{
                CustomerDTO customer=new CustomerDTO();
                customer.setName(name);
                customer.setEmail(name+"@gmail.com");
