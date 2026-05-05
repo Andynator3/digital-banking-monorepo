@@ -1,25 +1,24 @@
 version: '3.8'
 
 services:
-  # 1. Service de Base de Données (MySQL)
+  # 1. Base de données
   mysqldb:
     image: mysql:8.0
     container_name: digital-banking-mysql
     restart: always
     environment:
-      # On utilise les variables définies dans le .env
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "3306:3306"
+      - "${DB_HOST_PORT}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
       - banking-network
 
-  # 2. Service Backend (Spring Boot)
+  # 2. Serveur Backend (Spring Boot)
   backend:
     build:
       context: ./digital-banking-backend
@@ -27,19 +26,21 @@ services:
     container_name: digital-banking-backend
     restart: always
     ports:
-      # BACKEND_PORT du .env vers le port 8090 interne du conteneur
+      # On map le port défini dans le .env vers le port 8090 interne (celui de application.properties)
       - "${BACKEND_PORT}:8090"
     environment:
-      # L'URL JDBC utilise également la variable DB_NAME
+      # Ces variables écrasent ce qu'il y a dans votre application.properties
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysqldb:3306/${DB_NAME}?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=${DB_USER}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      # Injection de la clé secrète JWT depuis le fichier .env
+      - JWT_SECRET=${JWT_SECRET}
     depends_on:
       - mysqldb
     networks:
       - banking-network
 
-  # 3. Service Frontend (Angular + Nginx)
+  # 3. Serveur Frontend (Angular)
   frontend:
     build:
       context: ./digital-banking-frontend
@@ -47,14 +48,12 @@ services:
     container_name: digital-banking-frontend
     restart: always
     ports:
-      # FRONTEND_PORT du .env vers le port 80 interne de Nginx
       - "${FRONTEND_PORT}:80"
     depends_on:
       - backend
     networks:
       - banking-network
 
-# Définition des ressources partagées
 networks:
   banking-network:
     driver: bridge
