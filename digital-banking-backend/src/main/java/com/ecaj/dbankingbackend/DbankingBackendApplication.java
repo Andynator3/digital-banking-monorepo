@@ -35,7 +35,7 @@ public class DbankingBackendApplication {
         SpringApplication.run(DbankingBackendApplication.class, args);
     }
 
-    @Bean
+   // @Bean
     @Order(1)
     CommandLineRunner commandLineRunnerUserDetails(AuthSecurityService authSecurityService) {
         return args -> {
@@ -62,7 +62,7 @@ public class DbankingBackendApplication {
     }
 
 
-     @Bean
+    // @Bean
      @Order(2)
     CommandLineRunner commandLineRunner(CustomerService customerService, BankAccountService bankAccountService, OperationService operationService){
         return args -> {
