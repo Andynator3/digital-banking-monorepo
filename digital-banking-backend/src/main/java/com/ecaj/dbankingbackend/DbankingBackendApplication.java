@@ -1,32 +1,10 @@
 package com.ecaj.dbankingbackend;
 
-import com.ecaj.dbankingbackend.account.dtos.BankAccountDTO;
-import com.ecaj.dbankingbackend.account.dtos.CurrentBankAccountDTO;
-import com.ecaj.dbankingbackend.customer.dtos.CustomerDTO;
-import com.ecaj.dbankingbackend.account.dtos.SavingBankAccountDTO;
-import com.ecaj.dbankingbackend.account.entities.CurrentAccount;
-import com.ecaj.dbankingbackend.customer.entities.Customer;
-import com.ecaj.dbankingbackend.account.entities.SavingAccount;
-import com.ecaj.dbankingbackend.account.enums.AccountStatus;
-import com.ecaj.dbankingbackend.customer.exceptions.CustomerNotFoundException;
-import com.ecaj.dbankingbackend.operation.repositories.AccountOperationRepository;
-import com.ecaj.dbankingbackend.account.repositories.BankAccountRepository;
-import com.ecaj.dbankingbackend.customer.repositories.CustomerRepository;
-import com.ecaj.dbankingbackend.account.services.BankAccountService;
-import com.ecaj.dbankingbackend.customer.services.CustomerService;
-import com.ecaj.dbankingbackend.operation.services.OperationService;
-import com.ecaj.dbankingbackend.security.services.AuthSecurityService;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.annotation.Order;
 
 
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Stream;
+
 
 @SpringBootApplication
 public class DbankingBackendApplication {
@@ -35,7 +13,7 @@ public class DbankingBackendApplication {
         SpringApplication.run(DbankingBackendApplication.class, args);
     }
 
-   // @Bean
+   /*// @Bean
     @Order(1)
     CommandLineRunner commandLineRunnerUserDetails(AuthSecurityService authSecurityService) {
         return args -> {
@@ -60,9 +38,9 @@ public class DbankingBackendApplication {
             System.out.println("====== Utilisateurs de test générés avec succès ======");
         };
     }
+    */
 
-
-    // @Bean
+    /*// @Bean
      @Order(2)
     CommandLineRunner commandLineRunner(CustomerService customerService, BankAccountService bankAccountService, OperationService operationService){
         return args -> {
@@ -98,8 +76,9 @@ public class DbankingBackendApplication {
                 }
             }
         };
-    }
-    //@Bean
+    }*/
+
+   /* //@Bean
     CommandLineRunner start(CustomerRepository customerRepository,
                             BankAccountRepository bankAccountRepository,
                             AccountOperationRepository accountOperationRepository){
@@ -130,7 +109,7 @@ public class DbankingBackendApplication {
                 bankAccountRepository.save(savingAccount);
 
             });
-           /* bankAccountRepository.findAll().forEach(acc->{
+            bankAccountRepository.findAll().forEach(acc->{
                 for (int i = 0; i <10 ; i++) {
                     AccountOperation accountOperation=new AccountOperation();
                     accountOperation.setOperationDate(new Date());
@@ -139,9 +118,9 @@ public class DbankingBackendApplication {
                     accountOperation.setBankAccount(acc);
                     accountOperationRepository.save(accountOperation);
                 }
-            });*/
+            });
         };
 
-    }
+    }*/
 
 }

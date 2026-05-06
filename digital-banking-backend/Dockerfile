@@ -1,19 +1,23 @@
 # Étape 1 : Construction (Build) avec Maven
 FROM maven:3.9-eclipse-temurin-17 AS builder
 WORKDIR /app
-# On copie d'abord le pom.xml pour télécharger les dépendances (mise en cache Docker)
+
+# On télécharge les dépendances
 COPY pom.xml .
 RUN mvn dependency:go-offline
 
-# On copie ensuite le code source et on compile
+# On compile le projet
 COPY src ./src
 RUN mvn clean package -DskipTests
 
-# Étape 2 : Exécution (Run) avec une image légère
+# Étape 2 : Exécution (Run)
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
-# On ne récupère que le fichier .jar généré à l'étape précédente
+
+# On récupère le .jar
 COPY --from=builder /app/target/*.jar app.jar
 
-# On expose le port sur lequel tourne Spring Boot (je suppose 8090 vu vos requêtes)
 EXPOSE 8090
+
+# C'EST LA LIGNE CRUCIALE QUI MANQUAIT OU ÉTAIT MAL ÉCRITE
+ENTRYPOINT ["java", "-jar", "app.jar"]
