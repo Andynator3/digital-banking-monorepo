@@ -7,12 +7,13 @@ import {jwtDecode} from "jwt-decode";
 // Import de nos nouveaux modèles
 import { LoginRequest } from '../../models/login-request.model';
 import { AuthResponse } from '../../models/auth-response.model';
+import {environment} from "../../../environments/environment";
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private backendHost = "http://localhost:8090"; // Vérifiez bien votre port (8080 ou 8090)
+  private backendHost = environment.backendHost;
 
   public username: string | undefined;
   public roles: string[] = [];
@@ -20,6 +21,7 @@ export class AuthService {
   public accessToken: string | undefined;
 
   constructor(private http: HttpClient, private router: Router) { }
+
 
   // 1. La méthode d'appel API ultra propre
   public login(request: LoginRequest): Observable<AuthResponse> {
