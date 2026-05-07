@@ -1,0 +1,87 @@
+name: 1. CI - Application Build & Push
+
+# Ce pipeline se déclenche uniquement si on modifie le code de l'application
+on:
+  push:
+    branches: [ "main", "develop" ]
+    paths:
+      - 'digital-banking-backend/**'
+      - 'digital-banking-frontend/**'
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  REGISTRY: docker.io
+  # Remplacez par votre nom d'utilisateur Docker Hub
+  DOCKER_USER: andyja
+
+jobs:
+  build-and-test-java:
+    name: Build Backend (Java)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      - name: Maven Build & Test
+        run: mvn clean package -DskipTests
+        working-directory: ./digital-banking-backend
+
+  build-and-test-angular:
+    name: Build Frontend (Angular)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
+          cache-dependency-path: digital-banking-frontend/package-lock.json
+      - name: NPM Install & Build
+        run: |
+          npm ci
+          npm run build -- --configuration=production
+        working-directory: ./digital-banking-frontend
+
+  docker-build-push:
+    name: Build & Push Docker Images
+    needs: [build-and-test-java, build-and-test-angular]
+    runs-on: ubuntu-latest
+    # Ne pousse les images que si on est sur la branche main (pas sur une PR)
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Backend Image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./digital-banking-backend
+          push: true
+          tags: ${{ env.DOCKER_USER }}/digital-banking-backend:${{ github.sha }}, ${{ env.DOCKER_USER }}/digital-banking-backend:latest
+
+      - name: Build and push Frontend Image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./digital-banking-frontend
+          push: true
+          tags: ${{ env.DOCKER_USER }}/digital-banking-frontend:${{ github.sha }}, ${{ env.DOCKER_USER }}/digital-banking-frontend:latest
+
+      # Étape de sécurité DevOps : Scan de vulnérabilités avec Trivy
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ env.DOCKER_USER }}/digital-banking-backend:latest'
+          format: 'table'
+          exit-code: '0' # Mettre 1 pour bloquer le pipeline si vulnérabilité critique trouvée
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
