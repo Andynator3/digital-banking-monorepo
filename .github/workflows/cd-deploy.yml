@@ -1,0 +1,68 @@
+name: 3. CD - Helm Deployment
+
+# Ce pipeline se déclenche de deux manières :
+# 1. Automatiquement quand le pipeline CI (Build & Push) est terminé avec succès
+# 2. Manuellement via l'interface GitHub
+on:
+  workflow_run:
+    workflows: ["1. CI - Application Build & Push"]
+    types:
+      - completed
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy-to-kubernetes:
+    name: Deploy Application via Helm
+    runs-on: ubuntu-latest
+    # On s'assure que le pipeline CI précédent a réussi
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Installation de Helm (Outil de packaging Kubernetes)
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'v3.12.0'
+
+      # Configuration de l'accès au Cluster Kubernetes
+      # Le KUBECONFIG doit être stocké dans les secrets GitHub
+      - name: Set up Kubeconfig
+        uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+
+      # Déploiement de la base de données (si gérée dans le cluster)
+      - name: Deploy MySQL Database
+        run: |
+          helm upgrade --install digital-banking-db ./infra/helm/mysql \
+            --namespace digital-banking \
+            --create-namespace \
+            --set auth.rootPassword=${{ secrets.DB_ROOT_PASSWORD }} \
+            --set auth.password=${{ secrets.DB_PASSWORD }}
+
+      # Déploiement du Backend
+      - name: Deploy Backend
+        # On passe le SHA du commit pour utiliser la dernière image générée par la CI
+        run: |
+          helm upgrade --install digital-banking-backend ./infra/helm/backend \
+            --namespace digital-banking \
+            --set image.tag=${{ github.sha }} \
+            --set secret.jwtKey=${{ secrets.JWT_SECRET }}
+
+      # Déploiement du Frontend
+      - name: Deploy Frontend
+        run: |
+          helm upgrade --install digital-banking-frontend ./infra/helm/frontend \
+            --namespace digital-banking \
+            --set image.tag=${{ github.sha }}
+
+      - name: Verify Deployment
+        run: |
+          kubectl rollout status deployment/digital-banking-backend -n digital-banking
+          kubectl rollout status deployment/digital-banking-frontend -n digital-banking
