@@ -1,4 +1,3 @@
-"# Digital Banking Monorepo"
 🏦 Digital Banking Application
 
 Une application complète d'E-Banking (Système de gestion de comptes bancaires) développée avec une architecture moderne, sécurisée par JWT et entièrement conteneurisée.
@@ -61,7 +60,7 @@ Docker Compose
 
 Cloner le dépôt :
 
-git clone [https://github.com/votre-nom/digital-banking-monorepo.git](https://github.com/votre-nom/digital-banking-monorepo.git)
+git clone [https://github.com/Andynator3/digital-banking-monorepo.git](https://github.com/Andynator3/digital-banking-monorepo.git)
 cd digital-banking-monorepo
 
 
