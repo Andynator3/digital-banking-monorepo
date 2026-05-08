@@ -1,0 +1,20 @@
+# Combien de copies de l'application voulons-nous faire tourner en même temps ?
+replicaCount: 2
+
+image:
+  # RAPPEL : Changez "votrenomutilisateur" par votre pseudo Docker Hub !
+  repository: andyja/digital-banking-backend
+  tag: "latest" # Cette valeur sera écrasée par GitHub Actions avec le numéro du commit
+  pullPolicy: Always
+
+service:
+  type: ClusterIP # Le backend reste caché à l'intérieur du réseau Kubernetes
+  port: 8090
+
+secret:
+  jwtKey: "valeur_par_defaut" # Sera écrasé par le secret de GitHub Actions
+
+env:
+  # L'URL pointera vers le futur conteneur de base de données dans le cluster
+  dbUrl: "jdbc:mysql://digital-banking-db:3306/digital_banking_db?useSSL=false"
+  dbUser: "dbuser"
